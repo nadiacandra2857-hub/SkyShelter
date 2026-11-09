@@ -27,8 +27,8 @@ export function BottomNavigation() {
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center min-w-[56px] min-h-[44px] rounded-xl transition-all duration-200 select-none ${
                   isActive
-                    ? 'text-forest font-bold scale-105'
-                    : 'text-muted-gray hover:text-charcoal'
+                    ? 'text-sky-500 font-bold scale-105'
+                    : 'text-slate-400 hover:text-sky-400'
                 }`
               }
             >

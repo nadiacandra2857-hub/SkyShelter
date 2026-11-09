@@ -27,7 +27,11 @@ export const historyService = {
       };
     }
 
-    const response = await apiClient.get('/history/activities', { params });
+    const cleanParams = { ...params };
+    if (cleanParams.event_type === 'all') {
+      delete cleanParams.event_type;
+    }
+    const response = await apiClient.get('/history/activities', { params: cleanParams });
     return response.data;
   },
 
@@ -46,7 +50,8 @@ export const historyService = {
       };
     }
 
-    const response = await apiClient.get('/history/sensors', { params });
+    const requestParams = { page_size: 100, ...params };
+    const response = await apiClient.get('/history/sensors', { params: requestParams });
     return response.data;
   },
 
@@ -65,7 +70,8 @@ export const historyService = {
       };
     }
 
-    const response = await apiClient.get('/history/forecasts', { params });
+    const requestParams = { page_size: 100, ...params };
+    const response = await apiClient.get('/history/forecasts', { params: requestParams });
     return response.data;
   },
 

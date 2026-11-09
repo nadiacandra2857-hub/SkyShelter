@@ -14,10 +14,10 @@ export function ToastContainer() {
   };
 
   const styles = {
-    success: 'bg-forest-deep text-white border-forest',
+    success: 'bg-sky-600 text-white border-sky-500 shadow-md shadow-sky-500/20',
     error: 'bg-soft-red text-white border-soft-red/80',
     warning: 'bg-[#9A6B1A] text-white border-soft-amber',
-    info: 'bg-charcoal text-white border-sage/40',
+    info: 'bg-slate-900 text-white border-slate-700',
   };
 
   return (

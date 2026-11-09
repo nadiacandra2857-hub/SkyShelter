@@ -9,9 +9,9 @@ const defaultState = {
   device_id: 'roof-001',
   roof_status: 'closed', // 'open' | 'closed' | 'opening' | 'closing' | 'unknown'
   mode: 'auto', // 'auto' | 'manual'
-  rain_sensor: 'dry', // 'dry' | 'rain_detected' | 'unknown'
+  rain_sensor: 'disabled', // 'dry' | 'rain_detected' | 'unknown' | 'disabled'
   rain_detected: false,
-  rain_analog_value: 1023, // 1023 = kering, < 400 = basah
+  rain_analog_value: null, // dinonaktifkan sementara karena hardware ESP belum ada
   light_status: 'bright',
   light_lux: 680.0,
   temperature: 29.5,
@@ -23,8 +23,8 @@ const defaultState = {
   last_updated: new Date().toISOString(),
   is_simulation: true,
   weather_summary: {
-    provider: 'bmkg',
-    location: 'DKI Jakarta (Kemayoran)',
+    provider: 'open-meteo',
+    location: 'Genteng, Surabaya (Open-Meteo 15-Min)',
     probability_of_rain: 86.0,
     weather_condition: 'Hujan Sedang',
     temperature: 28.0,
@@ -48,7 +48,7 @@ const defaultState = {
     {
       id: 104,
       event_type: 'forecast_update',
-      source: 'bmkg_sync',
+      source: 'weather_sync',
       cause: 'Sinkronisasi berkala data cuaca regional',
       result: 'Data prakiraan cuaca 60 menit ke depan diperbarui (86% hujan)',
       created_at: new Date(Date.now() - 12 * 60 * 1000).toISOString(),

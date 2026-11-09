@@ -44,10 +44,11 @@ def get_activity_history(
 def get_sensor_history(
     device_id: Optional[str] = Query(None, description="Filter ID Perangkat"),
     rain_detected: Optional[bool] = Query(None, description="Filter kondisi hujan (true/false)"),
+    range: Optional[str] = Query(None, description="Rentang waktu: 24h, 7d, 30d"),
     start_date: Optional[datetime] = Query(None, description="Format ISO 8601 batas awal"),
     end_date: Optional[datetime] = Query(None, description="Format ISO 8601 batas akhir"),
     page: int = Query(1, ge=1, description="Nomor halaman"),
-    page_size: int = Query(20, ge=1, le=100, description="Jumlah data per halaman"),
+    page_size: int = Query(20, ge=1, le=500, description="Jumlah data per halaman"),
     db: Session = Depends(get_db)
 ):
     """Mengambil riwayat telemetri log sensor fisik (hujan, cahaya LDR, dll)."""
@@ -55,6 +56,7 @@ def get_sensor_history(
         db=db,
         device_id=device_id,
         rain_detected=rain_detected,
+        time_range=range,
         start_date=start_date,
         end_date=end_date,
         page=page,
@@ -65,16 +67,18 @@ def get_sensor_history(
 @router.get("/forecasts", response_model=PaginatedResponse[ForecastHistoryItem])
 def get_forecast_history(
     provider: Optional[str] = Query(None, description="Filter penyedia (bmkg, openweathermap)"),
+    range: Optional[str] = Query(None, description="Rentang waktu: 24h, 7d, 30d"),
     start_date: Optional[datetime] = Query(None, description="Batas awal tanggal"),
     end_date: Optional[datetime] = Query(None, description="Batas akhir tanggal"),
     page: int = Query(1, ge=1, description="Nomor halaman"),
-    page_size: int = Query(20, ge=1, le=100, description="Jumlah data per halaman"),
+    page_size: int = Query(20, ge=1, le=500, description="Jumlah data per halaman"),
     db: Session = Depends(get_db)
 ):
     """Mengambil riwayat rekaman prediksi cuaca eksternal yang tersimpan di database."""
     return HistoryService.get_forecasts(
         db=db,
         provider=provider,
+        time_range=range,
         start_date=start_date,
         end_date=end_date,
         page=page,

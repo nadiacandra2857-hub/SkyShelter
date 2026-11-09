@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, X } from 'lucide-react';
 import Button from './Button';
+import { useWeatherTheme } from '../../context/WeatherThemeContext';
 
 export function ConfirmDialog({
   isOpen,
@@ -14,6 +15,11 @@ export function ConfirmDialog({
   onConfirm,
   onClose,
 }) {
+  const { theme, activeCondition } = useWeatherTheme();
+  const isDark = theme?.isDark;
+  const isSunny = activeCondition === 'sunny' && !isDark;
+  const isCloudy = activeCondition === 'cloudy' && !isDark;
+
   // Tutup dengan tombol Escape
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -42,7 +48,7 @@ export function ConfirmDialog({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={!isLoading ? onClose : undefined}
-            className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
             aria-hidden="true"
           />
 
@@ -55,7 +61,11 @@ export function ConfirmDialog({
             role="dialog"
             aria-modal="true"
             aria-labelledby="dialog-title"
-            className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-soft-lg border border-sage/30 z-10"
+            className={`relative w-full max-w-md rounded-2xl p-6 shadow-soft-lg z-10 transition-colors border ${
+              isDark
+                ? 'bg-slate-900 border-slate-700 text-white shadow-2xl shadow-black/80'
+                : 'bg-white border-slate-200/80 text-charcoal'
+            }`}
           >
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex items-center gap-3">
@@ -63,12 +73,18 @@ export function ConfirmDialog({
                   className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                     variant === 'danger'
                       ? 'bg-soft-red-light text-soft-red'
-                      : 'bg-forest/10 text-forest'
+                      : isDark
+                      ? 'bg-slate-800 text-sky-400 border border-slate-700'
+                      : isCloudy
+                      ? 'bg-slate-100 text-slate-700 border border-slate-300'
+                      : isSunny
+                      ? 'bg-amber-50 text-amber-500 border border-amber-200'
+                      : 'bg-sky-50 text-sky-500'
                   }`}
                 >
                   <AlertTriangle className="w-5 h-5" />
                 </div>
-                <h3 id="dialog-title" className="text-base font-semibold text-charcoal">
+                <h3 id="dialog-title" className={`text-base font-semibold ${isDark ? 'text-white' : 'text-charcoal'}`}>
                   {title}
                 </h3>
               </div>
@@ -76,7 +92,9 @@ export function ConfirmDialog({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-lg p-1.5 text-muted-gray hover:bg-warm-surface hover:text-charcoal transition-colors"
+                  className={`rounded-lg p-1.5 transition-colors ${
+                    isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-muted-gray hover:bg-slate-100 hover:text-charcoal'
+                  }`}
                   aria-label="Tutup dialog"
                 >
                   <X className="w-5 h-5" />
@@ -84,7 +102,7 @@ export function ConfirmDialog({
               )}
             </div>
 
-            <p className="text-sm text-muted-gray mb-6 leading-relaxed">
+            <p className={`text-sm mb-6 leading-relaxed ${isDark ? 'text-slate-300' : 'text-muted-gray'}`}>
               {message}
             </p>
 
@@ -94,11 +112,20 @@ export function ConfirmDialog({
                 size="md"
                 onClick={onClose}
                 disabled={isLoading}
+                className={isDark ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700' : ''}
               >
                 {cancelLabel}
               </Button>
               <Button
-                variant={variant === 'danger' ? 'danger' : 'primary'}
+                variant={
+                  variant === 'danger'
+                    ? 'danger'
+                    : isCloudy
+                    ? 'slate'
+                    : isSunny
+                    ? 'amber'
+                    : 'primary'
+                }
                 size="md"
                 isLoading={isLoading}
                 onClick={onConfirm}

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_db
 from app.services.device_service import DeviceService
-from app.schemas.device import DeviceResponse, DeviceStatusResponse
+from app.schemas.device import DeviceResponse, DeviceStatusResponse, TelemetryPayload
 
 router = APIRouter(prefix="/devices", tags=["Devices"])
 
@@ -52,3 +52,33 @@ def get_device_status(device_id: str, db: Session = Depends(get_db)):
             detail={"code": "DEVICE_NOT_FOUND", "message": f"Perangkat dengan ID '{device_id}' tidak ditemukan."}
         )
     return status_resp
+
+
+@router.post("/{device_id}/telemetry", response_model=DeviceStatusResponse)
+def post_device_telemetry(
+    device_id: str,
+    payload: TelemetryPayload,
+    db: Session = Depends(get_db)
+):
+    """
+    Menerima rekaman data telemetri sensor (hujan, LDR, suhu, kelembapan) via HTTP REST.
+    Dapat digunakan oleh firmware ESP8266 HTTP client maupun pengujian simulator frontend.
+    Jika mode 'auto' aktif dan terdeteksi hujan, atap otomatis ditutup oleh Safety Lock.
+    """
+    DeviceService.record_sensor_telemetry(
+        db=db,
+        device_id=device_id,
+        rain_detected=payload.rain_detected,
+        rain_analog_value=payload.rain_analog_value,
+        light_lux=payload.light_lux,
+        temperature=payload.temperature,
+        humidity=payload.humidity,
+    )
+    status_resp = DeviceService.get_device_status(db, device_id)
+    if not status_resp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "DEVICE_NOT_FOUND", "message": f"Perangkat '{device_id}' tidak ditemukan."}
+        )
+    return status_resp
+

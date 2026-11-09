@@ -7,6 +7,7 @@ from sqlalchemy import desc
 from app.core.config import settings
 from app.models.device import Device
 from app.models.sensor import SensorReading
+from app.models.activity import RoofActivity
 from app.schemas.device import DeviceResponse, DeviceStatusResponse
 from app.utils.datetime import now_jakarta
 
@@ -128,6 +129,20 @@ class DeviceService:
             recorded_at=now,
         )
         db.add(reading)
+
+        # Otomasi Keamanan: Jika mode 'auto' dan sensor mendeteksi hujan aktif, tutup kanopi atap
+        if rain_detected and device.mode == "auto" and device.roof_status != "closed":
+            device.roof_status = "closed"
+            activity = RoofActivity(
+                device_id=device_id,
+                event_type="rain_event",
+                source="local_sensor",
+                cause=f"Sensor hujan fisik mendeteksi presipitasi aktif (ADC: {rain_analog_value or 310}).",
+                result="Atap otomatis ditutup oleh sistem demi melindungi jemuran pakaian.",
+                created_at=now,
+            )
+            db.add(activity)
+
         db.commit()
         db.refresh(reading)
         return reading
@@ -156,8 +171,12 @@ class DeviceService:
         conn_status = DeviceService.determine_connection_status(device)
         latest_sensor = DeviceService.get_latest_sensor_reading(db, device_id)
 
-        rain_detected = latest_sensor.rain_detected if latest_sensor else False
-        rain_status = latest_sensor.rain_status if latest_sensor else "unknown"
+        if latest_sensor:
+            rain_detected = latest_sensor.rain_detected
+            rain_status = latest_sensor.rain_status
+        else:
+            rain_detected = False
+            rain_status = "unknown"
         light_status = latest_sensor.light_status if latest_sensor else "unknown"
         light_lux = latest_sensor.light_lux if latest_sensor else None
         temperature = latest_sensor.temperature if latest_sensor else None

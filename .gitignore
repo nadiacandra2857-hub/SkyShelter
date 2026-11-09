@@ -1,0 +1,55 @@
+# Batch scripts & local runners
+*.bat
+*.cmd
+
+# Offline OpenStreetMap map tiles (batch image assets)
+frontendJ/public/tiles/
+public/tiles/
+**/public/tiles/
+
+# SQLite Database files
+*.db
+*.sqlite
+*.sqlite3
+weather_roofing.db
+test_roofing.db
+
+# Python & Testing artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Python Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node & Frontend build outputs
+node_modules/
+frontendJ/node_modules/
+dist/
+frontendJ/dist/
+dist-ssr/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+frontendJ/.env.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Scratch & IDE
+scratch/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

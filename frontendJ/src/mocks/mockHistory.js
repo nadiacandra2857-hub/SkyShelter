@@ -11,7 +11,7 @@ export const mockActivities = [
     device_id: 'roof-001',
     event_type: 'roof_movement',
     source: 'auto_early_close',
-    cause: 'Prakiraan hujan BMKG melampaui 80% (86% terdeteksi)',
+    cause: 'Prakiraan hujan Open-Meteo melampaui 80% (86% terdeteksi)',
     result: 'Atap ditutup otomatis sebelum hujan turun (Early-Close Succeeded)',
     created_at: new Date(baseTime - 8 * 60 * 1000).toISOString(),
   },
@@ -19,7 +19,7 @@ export const mockActivities = [
     id: 200,
     device_id: 'roof-001',
     event_type: 'forecast_update',
-    source: 'bmkg_sync',
+    source: 'weather_sync',
     cause: 'Siklus polling rutin 15 menit',
     result: 'Probabilitas hujan diperbarui dari 70% menjadi 86%',
     created_at: new Date(baseTime - 15 * 60 * 1000).toISOString(),
@@ -64,7 +64,7 @@ export const mockActivities = [
     id: 195,
     device_id: 'roof-001',
     event_type: 'forecast_update',
-    source: 'bmkg_sync',
+    source: 'weather_sync',
     cause: 'Pembaruan data prakiraan cuaca regional',
     result: 'Probabilitas hujan 25% (Kondisi Cerah Berawan)',
     created_at: new Date(baseTime - 240 * 60 * 1000).toISOString(),
@@ -126,7 +126,7 @@ export const mockForecastHistory = Array.from({ length: 24 }).map((_, index) => 
 
   return {
     id: index + 1,
-    provider: 'bmkg',
+    provider: 'open-meteo',
     location: 'DKI Jakarta',
     probability_of_rain: prob,
     forecast_horizon_minutes: 60,
@@ -142,7 +142,7 @@ export const mockForecastHistory = Array.from({ length: 24 }).map((_, index) => 
 // 4. Metrik Evaluasi Model Prakiraan vs Realita Sensor
 export const mockEvaluation = {
   status: 'evaluated',
-  message: 'Evaluasi performa prediksi BMKG vs deteksi sensor fisik lokal selama 30 hari terakhir.',
+  message: 'Evaluasi performa prediksi satelit vs deteksi sensor fisik lokal selama 30 hari terakhir.',
   threshold_used: 80.0,
   horizon_minutes_used: 60,
   evaluated_records_count: 120,

@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sliders, RefreshCw, AlertCircle, ShieldAlert } from 'lucide-react';
+import {
+  Sliders,
+  RefreshCw,
+  ShieldAlert,
+  Sun,
+  Cloud,
+  CloudRain,
+  CloudLightning,
+  Sparkles,
+} from 'lucide-react';
 import RoofStatusPanel from '../components/dashboard/RoofStatusPanel';
 import LocalSensorPanel from '../components/dashboard/LocalSensorPanel';
 import WeatherSummary from '../components/dashboard/WeatherSummary';
@@ -10,22 +19,51 @@ import RecentActivity from '../components/dashboard/RecentActivity';
 import LoadingState from '../components/common/LoadingState';
 import ErrorState from '../components/common/ErrorState';
 import Button from '../components/common/Button';
+import StatusBadge from '../components/common/StatusBadge';
 import useDashboard from '../hooks/useDashboard';
+import useWeather from '../hooks/useWeather';
 import useDeviceControl from '../hooks/useDeviceControl';
 import { useAuth } from '../context/AuthContext';
+import { useWeatherTheme } from '../context/WeatherThemeContext';
 
 export function DashboardPage() {
   const { data, loading, error, refetch, isMockMode } = useDashboard();
+  const { current: liveWeather, locationLabel, refresh: refreshWeather, refreshing: isWeatherRefreshing } = useWeather();
+  const activeWeather = liveWeather || data?.weather_summary;
   const { sendCommand, commandStatus } = useDeviceControl(data?.device_id || 'roof-001');
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const {
+    theme,
+    activeCondition,
+    autoCondition,
+    overrideTheme,
+    setOverrideTheme,
+    updateTelemetry,
+  } = useWeatherTheme();
+
+  // Sinkronkan data sensor & cuaca aktual ke engine tema otomatis (1 aplikasi 1 tema cuaca selaras)
+  useEffect(() => {
+    if (data || activeWeather) {
+      const condText = activeWeather?.weather_condition || data?.weather_summary?.weather_condition;
+      const probRain = activeWeather?.probability_of_rain ?? data?.weather_summary?.probability_of_rain;
+      updateTelemetry({
+        rainDetected: Boolean(data?.rain_detected),
+        rainAnalogValue: data?.rain_analog_value ?? 1023,
+        ...(condText ? { weatherConditionText: condText } : {}),
+        ...(probRain !== undefined ? { probabilityOfRain: probRain } : {}),
+        lightLux: data?.light_lux ?? 680,
+      });
+    }
+  }, [data, activeWeather, updateTelemetry]);
 
   if (loading && !data) {
     return (
       <div className="py-12">
         <LoadingState
           message="Memuat status atap & telemetri..."
-          subtext="Menghubungkan ke gateway sensor & satelit BMKG..."
+          subtext="Menghubungkan ke gateway sensor & satelit cuaca..."
         />
       </div>
     );
@@ -43,7 +81,13 @@ export function DashboardPage() {
     );
   }
 
-  const isOperating = commandStatus === 'pending' || data?.roof_status === 'opening' || data?.roof_status === 'closing';
+  const isOperating =
+    commandStatus === 'pending' ||
+    data?.roof_status === 'opening' ||
+    data?.roof_status === 'closing';
+
+  const isSunny = activeCondition === 'sunny';
+  const isCloudy = activeCondition === 'cloudy';
 
   const handleOpen = async () => {
     try {
@@ -68,20 +112,44 @@ export function DashboardPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="space-y-6"
+      className="space-y-6 pb-28 md:pb-32"
     >
       {/* Top Greeting & System Quick Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-forest">
-            <span>Halo, {user?.username || 'Admin'}</span>
-            <span>•</span>
-            <span className="text-muted-gray">SkyShelter Guardian</span>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
+            <span
+              className={
+                theme.isDark
+                  ? 'text-sky-400'
+                  : isSunny
+                  ? 'text-amber-600 font-bold'
+                  : isCloudy
+                  ? 'text-slate-700 font-bold'
+                  : 'text-sky-600 font-bold'
+              }
+            >
+              Halo, {user?.username || 'Admin'}
+            </span>
+            <span className={theme.isDark ? 'text-slate-600' : 'text-slate-300'}>•</span>
+            <span
+              className={
+                theme.isDark
+                  ? 'text-slate-400'
+                  : isSunny
+                  ? 'text-amber-700/80'
+                  : isCloudy
+                  ? 'text-slate-500'
+                  : 'text-slate-500'
+              }
+            >
+              SkyShelter Guardian
+            </span>
           </div>
-          <h2 className="text-xl md:text-2xl font-extrabold text-charcoal font-sans mt-0.5">
+          <h2 className={`text-xl md:text-2xl font-extrabold font-sans mt-0.5 ${theme.text.title}`}>
             Monitoring & Kendali Atap Jemuran
           </h2>
-          <p className="text-xs text-muted-gray mt-0.5">
+          <p className={`text-xs mt-0.5 ${theme.text.subtitle}`}>
             Sistem otomatis melindungi jemuran berdasarkan deteksi sensor hujan dan prediksi presipitasi.
           </p>
         </div>
@@ -92,16 +160,31 @@ export function DashboardPage() {
             size="sm"
             onClick={refetch}
             leftIcon={RefreshCw}
-            className="bg-white"
+            className={`shadow-sm ${
+              theme.isDark
+                ? 'bg-slate-900 border-slate-700 text-sky-400 hover:bg-slate-800'
+                : isSunny
+                ? 'border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 bg-white'
+                : isCloudy
+                ? 'border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 bg-white'
+                : 'border-sky-200 text-sky-700 hover:text-sky-800 hover:border-sky-300 hover:bg-sky-50 bg-white'
+            }`}
           >
             Segarkan
           </Button>
 
           <Button
-            variant="forest"
+            variant={isSunny ? 'amber' : isCloudy ? 'slate' : 'sky'}
             size="sm"
             onClick={() => navigate('/control')}
             leftIcon={Sliders}
+            className={
+              isSunny
+                ? 'bg-amber-500 hover:bg-amber-600 text-white font-semibold shadow-soft shadow-amber-500/20 ring-1 ring-amber-400/30'
+                : isCloudy
+                ? 'bg-slate-700 hover:bg-slate-800 text-white shadow-sm ring-1 ring-slate-600/30'
+                : 'bg-sky-500 hover:bg-sky-600 text-white font-semibold shadow-soft shadow-sky-100 ring-1 ring-sky-400/30'
+            }
           >
             Panel Kendali
           </Button>
@@ -162,8 +245,12 @@ export function DashboardPage() {
 
           {/* 4. Regional Satellite Weather Summary */}
           <WeatherSummary
-            weather={data?.weather_summary}
-            onRefresh={refetch}
+            weather={activeWeather ? { ...activeWeather, location: locationLabel || activeWeather.location } : data?.weather_summary}
+            onRefresh={() => {
+              refetch();
+              refreshWeather();
+            }}
+            isRefreshing={isWeatherRefreshing}
             isMockMode={isMockMode}
           />
         </div>
