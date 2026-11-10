@@ -10,11 +10,17 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { formatTime } from '../../utils/formatDate';
+import { useWeatherTheme } from '../../context/WeatherThemeContext';
 
 export function ForecastChart({ data = [], height = 240, threshold = 80 }) {
+  const { theme, activeCondition } = useWeatherTheme();
+  const isDark = theme?.isDark;
+  const isSunny = activeCondition === 'sunny' && !isDark;
+  const isCloudy = activeCondition === 'cloudy' && !isDark;
+
   if (!data || data.length === 0) {
     return (
-      <div className="h-60 flex items-center justify-center text-xs text-muted-gray">
+      <div className={`h-60 flex items-center justify-center text-xs ${isDark ? 'text-slate-400' : 'text-muted-gray'}`}>
         Tidak ada data prakiraan cuaca tersedia.
       </div>
     );
@@ -32,17 +38,27 @@ export function ForecastChart({ data = [], height = 240, threshold = 80 }) {
     if (active && payload && payload.length) {
       const p = payload[0].payload;
       return (
-        <div className="p-3 bg-white/95 backdrop-blur-md rounded-xl shadow-soft-lg border border-sage/30 text-xs">
-          <p className="font-semibold text-charcoal mb-1">Pukul: {label} WIB</p>
-          <p className="text-forest font-medium">
-            Kondisi: <span className="text-charcoal font-bold">{p.condition}</span>
+        <div
+          className={`p-3 rounded-xl shadow-soft-lg text-xs backdrop-blur-md border ${
+            isDark
+              ? 'bg-slate-900/95 border-slate-700 text-slate-100 shadow-slate-950/50'
+              : isSunny
+              ? 'bg-white/95 border-amber-200/80 text-charcoal shadow-amber-100/50'
+              : isCloudy
+              ? 'bg-white/95 border-slate-300 text-charcoal shadow-sm'
+              : 'bg-white/95 border-slate-200 text-charcoal'
+          }`}
+        >
+          <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-charcoal'}`}>Pukul: {label} WIB</p>
+          <p className={`${isSunny ? 'text-amber-600' : isCloudy ? 'text-slate-700' : 'text-sky-400'} font-medium`}>
+            Kondisi: <span className={`font-bold ${isDark ? 'text-white' : 'text-charcoal'}`}>{p.condition}</span>
           </p>
-          <p className="text-soft-amber font-medium">
+          <p className={`${isSunny ? 'text-amber-500' : isCloudy ? 'text-slate-600' : 'text-sky-300'} font-medium`}>
             Probabilitas Hujan:{' '}
-            <span className="font-mono font-bold text-charcoal">{p.probability}%</span>
+            <span className={`font-mono font-bold ${isDark ? 'text-white' : 'text-charcoal'}`}>{p.probability}%</span>
           </p>
           {p.temperature && (
-            <p className="text-muted-gray text-[11px] mt-1">
+            <p className={`text-[11px] mt-1 ${isDark ? 'text-slate-400' : 'text-muted-gray'}`}>
               Suhu: {p.temperature}°C • Kelembapan: {p.humidity}%
             </p>
           )}
@@ -51,6 +67,10 @@ export function ForecastChart({ data = [], height = 240, threshold = 80 }) {
     }
     return null;
   };
+
+  const strokeColor = isDark ? '#38bdf8' : isSunny ? '#f59e0b' : isCloudy ? '#64748b' : '#0284c7';
+  const gridColor = isDark ? '#1e293b' : isSunny ? '#fef3c7' : isCloudy ? '#e2e8f0' : '#cbd5e1';
+  const axisColor = isDark ? '#94a3b8' : isSunny ? '#b45309' : isCloudy ? '#64748b' : '#7B847E';
 
   return (
     <div className="w-full" style={{ height }}>
@@ -61,20 +81,28 @@ export function ForecastChart({ data = [], height = 240, threshold = 80 }) {
         >
           <defs>
             <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#E8B65B" stopOpacity={0.45} />
-              <stop offset="95%" stopColor="#E8B65B" stopOpacity={0.02} />
+              <stop
+                offset="5%"
+                stopColor={isCloudy ? '#94a3b8' : strokeColor}
+                stopOpacity={isDark ? 0.45 : isSunny ? 0.35 : isCloudy ? 0.10 : 0.35}
+              />
+              <stop
+                offset="95%"
+                stopColor={isCloudy ? '#94a3b8' : strokeColor}
+                stopOpacity={isSunny ? 0.10 : isCloudy ? 0.02 : 0.01}
+              />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#A8BBA0" strokeOpacity={0.25} />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} strokeOpacity={isDark ? 0.8 : 0.5} />
           <XAxis
             dataKey="time"
-            stroke="#7B847E"
+            stroke={axisColor}
             fontSize={11}
             tickLine={false}
             interval="preserveStartEnd"
           />
           <YAxis
-            stroke="#7B847E"
+            stroke={axisColor}
             fontSize={11}
             domain={[0, 100]}
             tickLine={false}
@@ -85,12 +113,12 @@ export function ForecastChart({ data = [], height = 240, threshold = 80 }) {
           {/* Garis Ambang Early-Close (80%) */}
           <ReferenceLine
             y={threshold}
-            stroke="#D96C5F"
+            stroke="#ef4444"
             strokeDasharray="4 4"
             strokeWidth={1.5}
             label={{
               value: `Ambang Early-Close (${threshold}%)`,
-              fill: '#D96C5F',
+              fill: '#ef4444',
               fontSize: 10,
               position: 'insideTopRight',
             }}
@@ -98,7 +126,7 @@ export function ForecastChart({ data = [], height = 240, threshold = 80 }) {
           <Area
             type="monotone"
             dataKey="probability"
-            stroke="#E8B65B"
+            stroke={strokeColor}
             strokeWidth={2.5}
             fillOpacity={1}
             fill="url(#forecastGradient)"

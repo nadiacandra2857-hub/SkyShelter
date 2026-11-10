@@ -5,20 +5,20 @@ export const dashboardService = {
   /**
    * Mengambil agregasi lengkap status atap, cuaca, telemetri, dan histori
    */
-  async getSummary() {
+  async getSummary(params = {}) {
     if (USE_MOCK_DATA) {
       await new Promise((r) => setTimeout(r, 350));
       return getMockState();
     }
 
-    const response = await apiClient.get('/dashboard/summary');
+    const response = await apiClient.get('/dashboard/summary', { params });
     return response.data;
   },
 
   /**
    * Mengambil status instan dan keputusan sistem saja
    */
-  async getStatus() {
+  async getStatus(params = {}) {
     if (USE_MOCK_DATA) {
       await new Promise((r) => setTimeout(r, 200));
       const state = getMockState();
@@ -40,7 +40,7 @@ export const dashboardService = {
       };
     }
 
-    const response = await apiClient.get('/dashboard/status');
+    const response = await apiClient.get('/dashboard/status', { params });
     return response.data;
   },
 };

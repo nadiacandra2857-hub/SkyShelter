@@ -5,8 +5,8 @@ export const ROOF_STATUS_MAP = {
   open: {
     label: 'Terbuka',
     description: 'Atap dalam posisi terbuka penuh, jemuran terpapar sinar.',
-    color: 'emerald',
-    badgeVariant: 'success',
+    color: 'sky',
+    badgeVariant: 'sky',
   },
   closed: {
     label: 'Tertutup',
@@ -51,6 +51,11 @@ export const RAIN_SENSOR_MAP = {
   unknown: {
     label: 'Tidak Diketahui',
     description: 'Data telemetri sensor belum dapat divalidasi.',
+    badgeVariant: 'muted',
+  },
+  disabled: {
+    label: 'Nonaktif',
+    description: 'Sensor fisik dinonaktifkan sementara (perangkat ESP belum tersedia). Sistem dipandu penuh oleh radar BMKG.',
     badgeVariant: 'muted',
   },
 };

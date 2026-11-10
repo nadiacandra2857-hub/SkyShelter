@@ -10,7 +10,7 @@ from app.models.activity import RoofActivity
 from app.models.settings import AppSettingsModel
 from app.services.device_service import DeviceService
 from app.services.decision_service import DecisionService
-from app.services.weather_service import weather_service, BMKGAdapter, OpenWeatherMapAdapter
+from app.services.weather_service import weather_service, BMKGAdapter, OpenWeatherMapAdapter, OpenMeteoAdapter
 from app.mqtt.handlers import handle_sensor_message, handle_status_message
 from app.utils.datetime import now_jakarta
 
@@ -239,10 +239,11 @@ def test_10_forecast_early_close_threshold():
 # 11. Kegagalan API cuaca dan fallback
 @pytest.mark.asyncio
 async def test_11_weather_api_failure_and_fallback(db_session):
-    # Simulasikan BMKG dan OpenWeatherMap gagal
-    with patch.object(BMKGAdapter, "fetch", side_effect=Exception("BMKG Timeout")):
-        with patch.object(OpenWeatherMapAdapter, "fetch", side_effect=Exception("OWM Rate Limit")):
-            res = await weather_service.get_current_weather(db_session, force_refresh=True)
+    # Simulasikan semua provider cuaca gagal
+    with patch.object(OpenMeteoAdapter, "fetch", side_effect=Exception("Open-Meteo Error")):
+        with patch.object(BMKGAdapter, "fetch", side_effect=Exception("BMKG Timeout")):
+            with patch.object(OpenWeatherMapAdapter, "fetch", side_effect=Exception("OWM Rate Limit")):
+                res = await weather_service.get_current_weather(db_session, force_refresh=True)
             # Karena API gagal, harus mengembalikan data lama (stale) atau status unavailable
             assert res.status in ["stale", "unavailable"]
             assert res.is_stale is True

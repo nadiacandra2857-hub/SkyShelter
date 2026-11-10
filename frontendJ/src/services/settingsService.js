@@ -7,7 +7,7 @@ const defaultSettings = {
   forecast_horizon_minutes: 60,
   roof_stabilization_delay_seconds: 30,
   weather_poll_interval_minutes: 15,
-  installation_location: 'DKI Jakarta (Kemayoran)',
+  installation_location: 'Surabaya / Lamongan, Jawa Timur',
   forecast_feature_enabled: true,
   device_synced_fields: ['roof_stabilization_delay_seconds'],
   backend_logic_fields: [

@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Offline OSM map tiles batch directory
+public/tiles/
+tiles/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

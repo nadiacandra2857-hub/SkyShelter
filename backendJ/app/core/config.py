@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     DEVICE_MODE: str = "simulation"  # "simulation" or "real"
     DEVICE_OFFLINE_TIMEOUT_SECONDS: int = 120
     DEFAULT_DEVICE_ID: str = "roof-001"
+    ENABLE_ESP_RAIN_SENSOR: bool = False  # Dinonaktifkan sementara karena perangkat ESP belum ada
 
     # --- MQTT Broker ---
     MQTT_ENABLED: bool = False
@@ -61,9 +62,11 @@ class Settings(BaseSettings):
     MQTT_KEEP_ALIVE: int = 60
 
     # --- Weather Provider ---
-    WEATHER_PROVIDER: str = "bmkg"  # "bmkg" or "openweathermap"
+    WEATHER_PROVIDER: str = "open-meteo"  # "open-meteo", "bmkg", or "openweathermap"
+    OPEN_METEO_API_BASE_URL: str = "https://api.open-meteo.com/v1/forecast"
     BMKG_API_BASE_URL: str = "https://api.bmkg.go.id/publik/prakiraan-cuaca"
-    WEATHER_LOCATION: str = "DKI Jakarta"
+    BMKG_DEFAULT_ADM4: str = "35.78.07.1001"
+    WEATHER_LOCATION: str = "Surabaya, Jawa Timur"
     OPENWEATHER_API_KEY: str = ""
     OPENWEATHER_API_BASE_URL: str = "https://api.openweathermap.org/data/2.5"
 

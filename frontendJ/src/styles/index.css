@@ -31,20 +31,32 @@
     scrollbar-width: none;
   }
 
-  /* Custom subtle scrollbar */
+  /* Custom subtle scrollbar (Modern Sleek Pill - No Arrow Buttons) */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
+  .custom-scrollbar::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #F6F5F0;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 9999px;
+    margin: 0 4px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #A8BBA0;
+    background: rgba(255, 255, 255, 0.22);
     border-radius: 9999px;
+    transition: background 0.2s ease;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #879C7E;
+    background: rgba(56, 189, 248, 0.55); /* Sky 400 */
+  }
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -58,4 +70,19 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* Weather Map Marker Styling */
+.weather-map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+.weather-map-marker:hover {
+  transform: scale(1.15);
+  z-index: 1000 !important;
 }

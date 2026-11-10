@@ -51,7 +51,7 @@ class ControlService:
 
         # 3. Pemeriksaan Kebijakan Keselamatan (Safety Policy)
         latest_sensor = DeviceService.get_latest_sensor_reading(db, device_id)
-        is_raining = latest_sensor.rain_detected if latest_sensor else False
+        is_raining = bool(latest_sensor and latest_sensor.rain_detected)
 
         if command_type == "open" and is_raining:
             # Perintah membuka atap diblokir oleh kebijakan keselamatan hujan

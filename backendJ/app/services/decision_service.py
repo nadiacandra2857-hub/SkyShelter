@@ -48,8 +48,11 @@ class DecisionService:
         """
         active_threshold = threshold if threshold is not None else settings.EARLY_CLOSE_THRESHOLD
 
-        # Aturan 1: Sensor fisik lokal mendeteksi hujan (Prioritas Tertinggi)
-        if rain_detected:
+        esp_rain_enabled = getattr(settings, 'ENABLE_ESP_RAIN_SENSOR', False)
+        active_rain = rain_detected if esp_rain_enabled else False
+
+        # Aturan 1: Sensor fisik lokal mendeteksi hujan (Prioritas Tertinggi - jika sensor aktif)
+        if active_rain:
             return DecisionResult(
                 decision="rain_detected",
                 reason="Sensor lokal mendeteksi presipitasi/hujan aktif. Prioritas penutupan fisik diaktifkan.",
@@ -79,7 +82,11 @@ class DecisionService:
         if probability_of_rain >= active_threshold:
             return DecisionResult(
                 decision="early_close",
-                reason=f"Sensor lokal kering, tetapi probabilitas hujan ({probability_of_rain:.1f}%) mencapai atau melebihi ambang early-close ({active_threshold:.1f}%). Disarankan menutup atap lebih awal.",
+                reason=(
+                    f"Sensor hujan ESP nonaktif (tahap perakitan). Prakiraan presipitasi Open-Meteo mendeteksi ({probability_of_rain:.1f}%) mencapai ambang early-close ({active_threshold:.1f}%). Disarankan menutup atap lebih awal."
+                    if not esp_rain_enabled
+                    else f"Sensor lokal kering, tetapi probabilitas hujan ({probability_of_rain:.1f}%) mencapai atau melebihi ambang early-close ({active_threshold:.1f}%). Disarankan menutup atap lebih awal."
+                ),
                 early_close_recommended=True,
                 rain_priority_active=False
             )

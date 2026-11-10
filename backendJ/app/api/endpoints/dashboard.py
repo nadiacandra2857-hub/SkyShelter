@@ -17,6 +17,9 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 @router.get("/status", response_model=DashboardStatusResponse)
 async def get_dashboard_status(
     device_id: Optional[str] = Query(None, description="ID Perangkat (default roof-001)"),
+    adm4: Optional[str] = Query(None, description="Kode Wilayah ADM4 BMKG"),
+    lat: Optional[float] = Query(None, description="Latitude GPS"),
+    lon: Optional[float] = Query(None, description="Longitude GPS"),
     db: Session = Depends(get_db)
 ):
     """
@@ -27,8 +30,14 @@ async def get_dashboard_status(
     dev_status = DeviceService.get_device_status(db, device.id)
     app_settings = SettingsService.get_or_create_settings(db)
 
-    # Ambil data cuaca dari cache
-    weather = await weather_service.get_current_weather(db, force_refresh=False)
+    # Ambil data cuaca dari cache untuk lokasi yang aktif
+    weather = await weather_service.get_current_weather(
+        db,
+        adm4=adm4,
+        lat=lat,
+        lon=lon,
+        force_refresh=False
+    )
     weather_available = weather.status in ["success", "fallback", "stale"]
 
     # Evaluasi logika keputusan V2.0
@@ -61,6 +70,9 @@ async def get_dashboard_status(
 @router.get("/summary", response_model=DashboardSummaryResponse)
 async def get_dashboard_summary(
     device_id: Optional[str] = Query(None, description="ID Perangkat (default roof-001)"),
+    adm4: Optional[str] = Query(None, description="Kode Wilayah ADM4 BMKG"),
+    lat: Optional[float] = Query(None, description="Latitude GPS"),
+    lon: Optional[float] = Query(None, description="Longitude GPS"),
     db: Session = Depends(get_db)
 ):
     """
@@ -75,8 +87,14 @@ async def get_dashboard_summary(
     dev_status = DeviceService.get_device_status(db, device.id)
     app_settings = SettingsService.get_or_create_settings(db)
 
-    # Dapatkan status cuaca
-    weather = await weather_service.get_current_weather(db, force_refresh=False)
+    # Dapatkan status cuaca untuk lokasi aktif
+    weather = await weather_service.get_current_weather(
+        db,
+        adm4=adm4,
+        lat=lat,
+        lon=lon,
+        force_refresh=False
+    )
     weather_available = weather.status in ["success", "fallback", "stale"]
 
     # Evaluasi keputusan

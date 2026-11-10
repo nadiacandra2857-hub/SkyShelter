@@ -1,153 +1,144 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
   Sliders,
   CloudRain,
   History,
   Settings,
-  Shield,
   Droplets,
-  Wifi,
-  RotateCcw,
-  Sparkles,
+  Sun,
+  Cloud,
+  CloudLightning,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useWeatherTheme } from '../../context/WeatherThemeContext';
 
 export function Sidebar() {
-  const { isMockMode, mockState, simulateRain, simulateConnection, resetSimulator } = useApp();
+  const { mockState } = useApp();
+  const { activeCondition } = useWeatherTheme();
+  const isSunny = activeCondition === 'sunny';
+  const isCloudy = activeCondition === 'cloudy';
 
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/control', label: 'Kendali Atap', icon: Sliders },
-    { to: '/weather', label: 'Cuaca & Radar', icon: CloudRain },
-    { to: '/history', label: 'Riwayat & Evaluasi', icon: History },
-    { to: '/settings', label: 'Pengaturan', icon: Settings },
+    { to: '/control', label: 'Kendali', icon: Sliders },
+    { to: '/weather', label: 'Cuaca', icon: CloudRain },
+    { to: '/history', label: 'Riwayat', icon: History },
+    { to: '/settings', label: 'Setelan', icon: Settings },
   ];
 
+  const isRain =
+    Boolean(mockState?.rain_detected) ||
+    activeCondition === 'rainy' ||
+    activeCondition === 'storm';
+
   return (
-    <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-forest-deep text-warm-offwhite h-screen sticky top-0 border-r border-forest shadow-soft-lg z-30 select-none">
-      {/* Brand Header */}
-      <div className="p-6 border-b border-forest/60">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-forest flex items-center justify-center text-sage shadow-soft">
-            <Shield className="w-6 h-6 text-sage" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-warm-offwhite tracking-wide">
-              SkyShelter V2.0
-            </h2>
-            <p className="text-[11px] text-sage font-medium">
-              Weather-Responsive Roof
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Navigation Links */}
-      <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar" aria-label="Navigasi Utama">
-        <div className="px-3 pb-2 text-[10px] font-semibold tracking-wider text-sage/70 uppercase">
-          Menu Navigasi
-        </div>
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-forest text-warm-offwhite shadow-soft font-semibold border-l-4 border-sage'
-                    : 'text-sage hover:bg-forest/40 hover:text-warm-offwhite'
-                }`
-              }
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{item.label}</span>
-            </NavLink>
-          );
-        })}
-
-        {/* Quick Simulator Panel in Sidebar */}
-        {isMockMode && (
-          <div className="mt-8 pt-4 border-t border-forest/60">
-            <div className="px-3 pb-2 flex items-center justify-between">
-              <span className="text-[10px] font-semibold tracking-wider text-soft-amber uppercase flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Lab Simulasi IoT
-              </span>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-forest/40 border border-forest/80 space-y-2 text-xs">
-              <div className="text-[11px] text-sage/90 leading-tight mb-2">
-                Uji interaksi tanpa perangkat fisik:
-              </div>
-
-              {/* Rain Sensor Toggle */}
-              <button
-                type="button"
-                onClick={() => simulateRain(!mockState?.rain_detected)}
-                className={`w-full flex items-center justify-between p-2 rounded-xl transition-colors font-medium ${
-                  mockState?.rain_detected
-                    ? 'bg-soft-red/30 text-soft-red border border-soft-red/50'
-                    : 'bg-forest/60 text-sage hover:bg-forest hover:text-white'
-                }`}
+    <aside
+      className="fixed bottom-3 sm:bottom-4 md:bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center select-none max-w-[95vw] pointer-events-none"
+      aria-label="Dynamic Island Navigation"
+    >
+      {/* Main Bottom Dynamic Island Pill */}
+      <motion.div
+        layout
+        transition={{ type: 'spring', damping: 30, stiffness: 420 }}
+        className={`pointer-events-auto flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-full bg-slate-950/95 backdrop-blur-md border ${
+          activeCondition === 'storm'
+            ? 'border-red-500/60 shadow-[0_12px_40px_rgba(239,68,68,0.3)] ring-2 ring-red-500/20'
+            : isRain
+            ? 'border-cyan-400/60 shadow-[0_12px_40px_rgba(56,189,248,0.3)] ring-2 ring-cyan-400/20'
+            : isSunny
+            ? 'border-amber-400/40 shadow-xl shadow-amber-950/20 ring-1 ring-amber-400/20'
+            : isCloudy
+            ? 'border-slate-700/60 shadow-xl shadow-slate-900/40'
+            : 'border-slate-800 shadow-xl'
+        } transition-colors duration-300`}
+      >
+        {/* Navigation Tabs */}
+        <nav className="flex items-center gap-0.5 sm:gap-1" aria-label="Navigasi Dynamic Island">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs transition-colors duration-200 ${
+                    isActive
+                      ? 'text-white font-semibold'
+                      : isSunny
+                      ? 'text-slate-400 hover:text-amber-300 hover:bg-white/5 font-medium'
+                      : isCloudy
+                      ? 'text-slate-400 hover:text-slate-200 hover:bg-white/5 font-medium'
+                      : 'text-slate-400 hover:text-sky-300 hover:bg-white/5 font-medium'
+                  }`
+                }
               >
-                <span className="flex items-center gap-2">
-                  <Droplets className="w-3.5 h-3.5" />
-                  <span>Sensor Hujan</span>
-                </span>
-                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-black/20">
-                  {mockState?.rain_detected ? 'Basah' : 'Kering'}
-                </span>
-              </button>
+                {({ isActive }) => (
+                  <>
+                    {/* Animated Sliding Pill for Active Tab */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="dynamic-island-active-indicator"
+                        className={`absolute inset-0 rounded-full text-white -z-10 ${
+                          activeCondition === 'storm'
+                            ? 'bg-red-600 shadow-md shadow-red-600/30 border border-red-500/30'
+                            : isCloudy
+                            ? 'bg-slate-700 shadow-md shadow-slate-900/20 border border-slate-600/40'
+                            : isSunny
+                            ? 'bg-amber-500 shadow-md shadow-amber-500/30 border border-amber-400/30'
+                            : 'bg-sky-500 shadow-md shadow-sky-500/25 border border-sky-400/30'
+                        }`}
+                        transition={{ type: 'spring', damping: 25, stiffness: 380 }}
+                      />
+                    )}
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span className={`${isActive ? 'inline' : 'hidden md:inline'}`}>
+                      {item.label}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+        </nav>
 
-              {/* Connection Toggle */}
-              <button
-                type="button"
-                onClick={() => simulateConnection(mockState?.connection_status !== 'online')}
-                className={`w-full flex items-center justify-between p-2 rounded-xl transition-colors font-medium ${
-                  mockState?.connection_status === 'online'
-                    ? 'bg-forest/60 text-sage hover:bg-forest hover:text-white'
-                    : 'bg-soft-red/30 text-soft-red border border-soft-red/50'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span>ESP8266 Link</span>
-                </span>
-                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-black/20">
-                  {mockState?.connection_status === 'online' ? 'Online' : 'Offline'}
-                </span>
-              </button>
-
-              {/* Reset Simulator */}
-              <button
-                type="button"
-                onClick={resetSimulator}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] text-sage/80 hover:text-white hover:bg-forest/50 rounded-lg transition-colors"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset Simulator</span>
-              </button>
-            </div>
+        {/* Live Weather Capsule (Dynamic Island Live State) */}
+        {activeCondition === 'storm' && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-400/30 text-[11px] font-medium animate-pulse"
+          >
+            <CloudLightning className="w-3.5 h-3.5 text-red-300" />
+            <span className="hidden sm:inline">Badai!</span>
+          </motion.div>
+        )}
+        {activeCondition === 'rainy' && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 text-[11px] font-medium animate-pulse"
+          >
+            <Droplets className="w-3.5 h-3.5 text-cyan-300" />
+            <span className="hidden sm:inline">Hujan!</span>
+          </motion.div>
+        )}
+        {activeCondition === 'sunny' && (
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-400/25 text-[11px] font-medium">
+            <Sun className="w-3.5 h-3.5 text-amber-300" />
+            <span className="hidden sm:inline">Cerah</span>
           </div>
         )}
-      </nav>
-
-      {/* Footer System Status */}
-      <div className="p-4 border-t border-forest/60 text-[11px] text-sage/80">
-        <div className="flex items-center justify-between mb-1">
-          <span>Backend Target</span>
-          <span className="font-mono text-warm-offwhite">FastAPI REST</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span>Firmware Target</span>
-          <span className="font-mono text-warm-offwhite">ESP8266 V2.0</span>
-        </div>
-      </div>
+        {activeCondition === 'cloudy' && (
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-medium">
+            <Cloud className="w-3.5 h-3.5 text-slate-300" />
+            <span className="hidden sm:inline">Berawan</span>
+          </div>
+        )}
+      </motion.div>
     </aside>
   );
 }

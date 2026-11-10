@@ -189,49 +189,66 @@ export const deviceService = {
   /**
    * Simulator trigger: toggle sensor hujan lokal untuk pengujian manual
    */
-  simulateRainSensor(rainDetected) {
-    if (!USE_MOCK_DATA) return;
-    const state = getMockState();
-    state.rain_detected = rainDetected;
-    state.rain_sensor = rainDetected ? 'rain_detected' : 'dry';
-    state.rain_analog_value = rainDetected ? 310 : 1023;
-    state.last_updated = new Date().toISOString();
+  async simulateRainSensor(rainDetected) {
+    if (USE_MOCK_DATA) {
+      const state = getMockState();
+      state.rain_detected = rainDetected;
+      state.rain_sensor = rainDetected ? 'rain_detected' : 'dry';
+      state.rain_analog_value = rainDetected ? 310 : 1023;
+      state.last_updated = new Date().toISOString();
 
-    if (rainDetected) {
-      state.decision = 'rain_detected';
-      state.decision_reason = 'Sensor hujan lokal mendeteksi air hujan aktif. Atap ditutup secara darurat.';
-      // Jika mode auto atau sedang buka, otomatis tutup kanopi
-      if (state.mode === 'auto' || state.roof_status === 'open') {
-        state.roof_status = 'closed';
+      if (rainDetected) {
+        state.decision = 'rain_detected';
+        state.decision_reason = 'Sensor hujan lokal mendeteksi air hujan aktif. Atap ditutup secara darurat.';
+        // Jika mode auto atau sedang buka, otomatis tutup kanopi
+        if (state.mode === 'auto' || state.roof_status === 'open') {
+          state.roof_status = 'closed';
+        }
+        const rainActivity = {
+          id: Date.now(),
+          event_type: 'rain_event',
+          source: 'local_sensor',
+          cause: 'Sensor hujan fisik mendeteksi presipitasi aktif (Nilai analog: 310)',
+          result: 'Sistem memicu penutupan darurat demi keselamatan jemuran',
+          created_at: new Date().toISOString(),
+        };
+        state.recent_activities = [rainActivity, ...(state.recent_activities || [])].slice(0, 15);
+      } else {
+        state.decision = state.weather_summary?.probability_of_rain >= 80 ? 'early_close' : 'normal';
+        state.decision_reason = state.decision === 'early_close'
+          ? 'Sensor kering, namun probabilitas hujan tinggi (> 80%). Atap tetap ditutup lebih awal.'
+          : 'Sensor hujan kering dan cuaca normal.';
+        const dryActivity = {
+          id: Date.now(),
+          event_type: 'rain_event',
+          source: 'local_sensor',
+          cause: 'Permukaan sensor kembali kering setelah jeda stabilisasi',
+          result: 'Deteksi hujan fisik selesai',
+          created_at: new Date().toISOString(),
+        };
+        state.recent_activities = [dryActivity, ...(state.recent_activities || [])].slice(0, 15);
       }
-      const rainActivity = {
-        id: Date.now(),
-        event_type: 'rain_event',
-        source: 'local_sensor',
-        cause: 'Sensor hujan fisik mendeteksi presipitasi aktif (Nilai analog: 310)',
-        result: 'Sistem memicu penutupan darurat demi keselamatan jemuran',
-        created_at: new Date().toISOString(),
-      };
-      state.recent_activities = [rainActivity, ...(state.recent_activities || [])].slice(0, 15);
-    } else {
-      state.decision = state.weather_summary?.probability_of_rain >= 80 ? 'early_close' : 'normal';
-      state.decision_reason = state.decision === 'early_close'
-        ? 'Sensor kering, namun probabilitas hujan tinggi (> 80%). Atap tetap ditutup lebih awal.'
-        : 'Sensor hujan kering dan cuaca normal.';
-      const dryActivity = {
-        id: Date.now(),
-        event_type: 'rain_event',
-        source: 'local_sensor',
-        cause: 'Permukaan sensor kembali kering setelah jeda stabilisasi',
-        result: 'Deteksi hujan fisik selesai',
-        created_at: new Date().toISOString(),
-      };
-      state.recent_activities = [dryActivity, ...(state.recent_activities || [])].slice(0, 15);
+
+      saveMockState(state);
+      window.dispatchEvent(new CustomEvent('roof:state_changed', { detail: state }));
+      return state;
     }
 
-    saveMockState(state);
-    window.dispatchEvent(new CustomEvent('roof:state_changed', { detail: state }));
-    return state;
+    // Mode FastAPI Backend: Kirim telemetry ke endpoint REST
+    try {
+      const response = await apiClient.post('/devices/roof-001/telemetry', {
+        rain_detected: rainDetected,
+        rain_analog_value: rainDetected ? 310.0 : 1023.0,
+        light_lux: rainDetected ? 95.0 : 550.0,
+        temperature: rainDetected ? 24.5 : 29.0,
+        humidity: rainDetected ? 88.0 : 65.0,
+      });
+      window.dispatchEvent(new CustomEvent('roof:state_changed', { detail: response.data }));
+      return response.data;
+    } catch (err) {
+      console.warn('Gagal memicu telemetri simulasi ke backend:', err);
+      throw err;
+    }
   },
 
   /**

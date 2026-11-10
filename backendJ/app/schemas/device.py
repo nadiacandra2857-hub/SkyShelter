@@ -40,3 +40,12 @@ class DeviceResponse(BaseModel):
     last_heartbeat: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
+
+
+class TelemetryPayload(BaseModel):
+    rain_detected: bool = Field(..., description="Status sensor hujan (true jika mendeteksi air/presipitasi)")
+    rain_analog_value: Optional[float] = Field(None, description="Nilai ADC analog sensor (0-1023)")
+    light_lux: Optional[float] = Field(None, description="Intensitas cahaya lux LDR")
+    temperature: Optional[float] = Field(None, description="Suhu lingkungan Celcius")
+    humidity: Optional[float] = Field(None, description="Kelembapan relatif persen")
+

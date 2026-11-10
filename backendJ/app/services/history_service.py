@@ -35,8 +35,11 @@ class HistoryService:
         query = db.query(RoofActivity)
         if device_id:
             query = query.filter(RoofActivity.device_id == device_id)
-        if event_type:
-            query = query.filter(RoofActivity.event_type == event_type)
+        if event_type and event_type.strip().lower() != "all":
+            if event_type == "roof_movement":
+                query = query.filter(RoofActivity.event_type.in_(["roof_open", "roof_close", "roof_movement", "command_blocked"]))
+            else:
+                query = query.filter(RoofActivity.event_type == event_type)
         if source:
             query = query.filter(RoofActivity.source == source)
         if start_date:
@@ -66,6 +69,7 @@ class HistoryService:
         db: Session,
         device_id: Optional[str] = None,
         rain_detected: Optional[bool] = None,
+        time_range: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         page: int = 1,
@@ -76,6 +80,14 @@ class HistoryService:
             query = query.filter(SensorReading.device_id == device_id)
         if rain_detected is not None:
             query = query.filter(SensorReading.rain_detected == rain_detected)
+        if not start_date and time_range:
+            now = now_jakarta()
+            if time_range == "24h":
+                start_date = now - timedelta(hours=24)
+            elif time_range == "7d":
+                start_date = now - timedelta(days=7)
+            elif time_range == "30d":
+                start_date = now - timedelta(days=30)
         if start_date:
             query = query.filter(SensorReading.recorded_at >= start_date)
         if end_date:
@@ -102,6 +114,7 @@ class HistoryService:
     def get_forecasts(
         db: Session,
         provider: Optional[str] = None,
+        time_range: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         page: int = 1,
@@ -110,6 +123,14 @@ class HistoryService:
         query = db.query(WeatherForecast)
         if provider:
             query = query.filter(WeatherForecast.provider == provider)
+        if not start_date and time_range:
+            now = now_jakarta()
+            if time_range == "24h":
+                start_date = now - timedelta(hours=24)
+            elif time_range == "7d":
+                start_date = now - timedelta(days=7)
+            elif time_range == "30d":
+                start_date = now - timedelta(days=30)
         if start_date:
             query = query.filter(WeatherForecast.fetched_at >= start_date)
         if end_date:

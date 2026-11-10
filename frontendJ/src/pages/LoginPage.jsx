@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Eye, EyeOff, Lock, User, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Shield, Eye, EyeOff, Lock, User, AlertCircle, ArrowRight } from 'lucide-react';
 import Button from '../components/common/Button';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { useWeatherTheme } from '../context/WeatherThemeContext';
 
 export function LoginPage() {
   const [username, setUsername] = useState('admin');
@@ -14,7 +15,12 @@ export function LoginPage() {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const { login } = useAuth();
-  const { isMockMode, showToast } = useApp();
+  const { showToast } = useApp();
+  const { theme, activeCondition } = useWeatherTheme();
+  const isDark = theme?.isDark;
+  const isSunny = activeCondition === 'sunny' && !isDark;
+  const isCloudy = activeCondition === 'cloudy' && !isDark;
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,7 +54,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-warm-offwhite flex items-center justify-center p-4 selection:bg-sage/40">
+    <div className={`min-h-screen ${theme.pageBg} flex items-center justify-center p-4 selection:bg-sky-200 transition-colors duration-500`}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -57,22 +63,42 @@ export function LoginPage() {
       >
         {/* App Logo & Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-3xl bg-forest-deep text-sage shadow-soft-md mb-3 border border-forest">
-            <Shield className="w-8 h-8 text-sage" />
+          <div
+            className={`inline-flex items-center justify-center w-14 h-14 rounded-3xl shadow-soft-md mb-3 border transition-colors ${
+              isDark
+                ? 'bg-slate-950 text-sky-400 border-slate-800'
+                : isSunny
+                ? 'bg-amber-500 text-white border-amber-400 shadow-amber-500/20'
+                : isCloudy
+                ? 'bg-slate-700 text-white border-slate-600'
+                : 'bg-sky-500 text-white border-sky-400 shadow-sky-500/20'
+            }`}
+          >
+            <Shield className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-extrabold text-charcoal font-sans tracking-tight">
+          <h1 className={`text-2xl font-extrabold font-sans tracking-tight ${isDark ? 'text-white' : 'text-charcoal'}`}>
             SkyShelter
           </h1>
-          <p className="text-xs text-muted-gray mt-1">
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-muted-gray'}`}>
             Weather-Responsive Roofing System V2.0
           </p>
         </div>
 
         {/* Card Form */}
-        <div className="rounded-3xl bg-white border border-sage/30 shadow-soft-lg p-6 sm:p-8">
+        <div
+          className={`rounded-3xl border shadow-soft-lg p-6 sm:p-8 transition-colors ${
+            isDark
+              ? 'bg-slate-900/90 border-slate-700/80 text-white backdrop-blur-md'
+              : isSunny
+              ? 'bg-white/95 border-amber-200/90 shadow-amber-100/40 text-charcoal'
+              : isCloudy
+              ? 'bg-white/95 border-slate-300/80 text-charcoal'
+              : 'bg-white/95 border-sky-200/90 shadow-sky-100/40 text-charcoal'
+          }`}
+        >
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-charcoal">Masuk ke Dashboard</h2>
-            <p className="text-xs text-muted-gray mt-0.5">
+            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-charcoal'}`}>Masuk ke Dashboard</h2>
+            <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-muted-gray'}`}>
               Autentikasi untuk memantau sensor dan kendali atap jemuran
             </p>
           </div>
@@ -93,7 +119,7 @@ export function LoginPage() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-xs font-semibold text-charcoal mb-1.5"
+                className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-slate-300' : 'text-charcoal'}`}
               >
                 Username atau Email
               </label>
@@ -109,7 +135,15 @@ export function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Masukkan username Anda"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-sage/40 bg-warm-surface text-charcoal text-sm placeholder:text-muted-gray/60 focus:bg-white focus:border-forest focus:ring-1 focus:ring-forest transition-all"
+                  className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1 ${
+                    isDark
+                      ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-sky-500 focus:ring-sky-500'
+                      : isSunny
+                      ? 'bg-amber-50/50 border-amber-200 text-charcoal placeholder:text-muted-gray/60 focus:bg-white focus:border-amber-500 focus:ring-amber-500'
+                      : isCloudy
+                      ? 'bg-slate-50 border-slate-300 text-charcoal placeholder:text-muted-gray/60 focus:bg-white focus:border-slate-500 focus:ring-slate-500'
+                      : 'bg-slate-50 border-slate-200 text-charcoal placeholder:text-muted-gray/60 focus:bg-white focus:border-sky-500 focus:ring-sky-500'
+                  }`}
                 />
               </div>
             </div>
@@ -118,7 +152,7 @@ export function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-xs font-semibold text-charcoal mb-1.5"
+                className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-slate-300' : 'text-charcoal'}`}
               >
                 Password
               </label>
@@ -134,7 +168,15 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan kata sandi"
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-sage/40 bg-warm-surface text-charcoal text-sm placeholder:text-muted-gray/60 focus:bg-white focus:border-forest focus:ring-1 focus:ring-forest transition-all"
+                  className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-1 ${
+                    isDark
+                      ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-sky-500 focus:ring-sky-500'
+                      : isSunny
+                      ? 'bg-amber-50/50 border-amber-200 text-charcoal placeholder:text-muted-gray/60 focus:bg-white focus:border-amber-500 focus:ring-amber-500'
+                      : isCloudy
+                      ? 'bg-slate-50 border-slate-300 text-charcoal placeholder:text-muted-gray/60 focus:bg-white focus:border-slate-500 focus:ring-slate-500'
+                      : 'bg-slate-50 border-slate-200 text-charcoal placeholder:text-muted-gray/60 focus:bg-white focus:border-sky-500 focus:ring-sky-500'
+                  }`}
                 />
                 <button
                   type="button"
@@ -150,35 +192,26 @@ export function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              variant="primary"
+              variant={isSunny ? 'amber' : isCloudy ? 'slate' : 'sky'}
               size="lg"
               isLoading={loading}
               rightIcon={ArrowRight}
-              className="w-full mt-2"
+              className={`w-full mt-2 font-semibold ${
+                isSunny
+                  ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-soft shadow-amber-500/20'
+                  : isCloudy
+                  ? 'bg-slate-700 hover:bg-slate-800 text-white shadow-sm'
+                  : 'bg-sky-500 hover:bg-sky-600 text-white shadow-soft shadow-sky-500/20'
+              }`}
             >
               Masuk ke Sistem
             </Button>
           </form>
-
-          {/* Quick Demo Helper */}
-          {isMockMode && (
-            <div className="mt-6 pt-4 border-t border-sage/20 rounded-xl bg-warm-surface/70 p-3 text-xs text-muted-gray">
-              <div className="flex items-center gap-1.5 font-semibold text-forest-deep mb-1">
-                <Sparkles className="w-3.5 h-3.5 text-soft-amber" />
-                <span>Kredensial Default Simulasi:</span>
-              </div>
-              <p className="text-[11px] leading-relaxed">
-                Username: <code className="bg-sage/20 px-1 py-0.5 rounded text-charcoal font-mono">admin</code>
-                {' '}| Password:{' '}
-                <code className="bg-sage/20 px-1 py-0.5 rounded text-charcoal font-mono">adminPassword123!</code>
-              </p>
-            </div>
-          )}
         </div>
 
         {/* System Architecture Note */}
-        <p className="text-center text-[11px] text-muted-gray mt-6">
-          Sistem Kendali Atap Jemuran Berbasis Sensor Hujan & Prediksi Cuaca BMKG
+        <p className={`text-center text-[11px] mt-6 ${isDark ? 'text-slate-400' : 'text-muted-gray'}`}>
+          Sistem Kendali Atap Jemuran Berbasis Sensor Hujan & Prediksi Cuaca Open-Meteo
         </p>
       </motion.div>
     </div>
