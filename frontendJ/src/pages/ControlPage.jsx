@@ -443,10 +443,17 @@ export function ControlPage() {
                 }`}
               >
                 <span className={isDark ? 'text-slate-400' : 'text-muted-gray'}>Status Hardware ESP</span>
-                <span className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-slate-800 text-slate-300 border-slate-700 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                  <span>Nonaktif (Belum Ada Hardware)</span>
-                </span>
+                {isOnline ? (
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-emerald-500/10 text-emerald-500 border-emerald-500/30 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Online (ESP8266 Terhubung)</span>
+                  </span>
+                ) : (
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-slate-800 text-slate-300 border-slate-700 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                    <span>Nonaktif (Belum Ada Hardware)</span>
+                  </span>
+                )}
               </div>
 
               <div
