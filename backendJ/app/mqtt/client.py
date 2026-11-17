@@ -38,10 +38,17 @@ class MQTTService:
         try:
             # Paho-MQTT v2 compatibility check
             protocol = mqtt.MQTTv311
-            self.client = mqtt.Client(
-                client_id=settings.MQTT_CLIENT_ID,
-                protocol=protocol
-            )
+            if hasattr(mqtt, "CallbackAPIVersion"):
+                self.client = mqtt.Client(
+                    mqtt.CallbackAPIVersion.VERSION1,
+                    client_id=settings.MQTT_CLIENT_ID,
+                    protocol=protocol
+                )
+            else:
+                self.client = mqtt.Client(
+                    client_id=settings.MQTT_CLIENT_ID,
+                    protocol=protocol
+                )
 
             if settings.MQTT_USERNAME and settings.MQTT_PASSWORD:
                 self.client.username_pw_set(settings.MQTT_USERNAME, settings.MQTT_PASSWORD)

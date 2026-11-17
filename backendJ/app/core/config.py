@@ -49,11 +49,11 @@ class Settings(BaseSettings):
     DEVICE_MODE: str = "simulation"  # "simulation" or "real"
     DEVICE_OFFLINE_TIMEOUT_SECONDS: int = 120
     DEFAULT_DEVICE_ID: str = "roof-001"
-    ENABLE_ESP_RAIN_SENSOR: bool = False  # Dinonaktifkan sementara karena perangkat ESP belum ada
+    ENABLE_ESP_RAIN_SENSOR: bool = True  # Mengizinkan sensor hujan fisik ESP & telemetri hardware
 
     # --- MQTT Broker ---
-    MQTT_ENABLED: bool = False
-    MQTT_HOST: str = "localhost"
+    MQTT_ENABLED: bool = True
+    MQTT_HOST: str = "127.0.0.1"
     MQTT_PORT: int = 1883
     MQTT_USERNAME: str = ""
     MQTT_PASSWORD: str = ""
